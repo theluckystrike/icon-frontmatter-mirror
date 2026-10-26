@@ -1,0 +1,11 @@
+{
+	"id": "icon-frontmatter-mirror",
+	"name": "Icon Frontmatter Mirror",
+	"version": "1.0.0",
+	"minAppVersion": "1.13.4",
+	"description": "Copies the file icons that you set in Iconize to a property in each note, and keeps the property current.",
+	"author": "Michael Lip",
+	"authorUrl": "https://github.com/theluckystrike",
+	"fundingUrl": "https://github.com/sponsors/theluckystrike",
+	"isDesktopOnly": false
+}

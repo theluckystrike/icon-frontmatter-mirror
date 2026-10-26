@@ -1,0 +1,52 @@
+[
+	{
+		"feature": "mirrored",
+		"caption": "The icon and color that Iconize keeps in its data file are now properties of the note.",
+		"note": "Reading list.md",
+		"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); const dir=app.vault.configDir+'/plugins/obsidian-icon-folder'; if(!(await app.vault.adapter.exists(dir))) await app.vault.adapter.mkdir(dir); await app.vault.adapter.write(dir+'/data.json', \"{\\\"settings\\\": {\\\"iconInFrontmatterFieldName\\\": \\\"icon\\\", \\\"iconColorInFrontmatterFieldName\\\": \\\"iconColor\\\"}, \\\"Icon Frontmatter Mirror/Reading list.md\\\": {\\\"iconName\\\": \\\"LiBookOpen\\\", \\\"iconColor\\\": \\\"#2f7d5b\\\"}, \\\"Icon Frontmatter Mirror/Trip to Lisbon.md\\\": \\\"LiPlane\\\", \\\"Icon Frontmatter Mirror/Garden.md\\\": \\\"LiSprout\\\", \\\"Icon Frontmatter Mirror/Projects\\\": \\\"LiFolderKanban\\\", \\\"Icon Frontmatter Mirror/Projects/Website.md\\\": \\\"LiGlobe\\\"}\"); await app.plugins.plugins['icon-frontmatter-mirror'].mirrorNow(); document.querySelectorAll('.notice').forEach(n => n.remove()); const l=app.workspace.getLeaf(false); const s=l.getViewState(); await l.setViewState({...s,state:{...s.state,mode:'source',source:false}}); for (let i=0;i<60;i++) { const f=app.vault.getFileByPath(\"Icon Frontmatter Mirror/Reading list.md\"); const fm=f && app.metadataCache.getFileCache(f)?.frontmatter; if (fm && fm[\"icon\"]===\"LiBookOpen\") break; await new Promise(r=>setTimeout(r,100)); } const f2=app.vault.getFileByPath(\"Icon Frontmatter Mirror/Reading list.md\"); const v=app.metadataCache.getFileCache(f2)?.frontmatter?.[\"icon\"]; if (v!==\"LiBookOpen\") throw new Error('property '+v); await new Promise(r=>setTimeout(r,600)); return 'ok'; })()",
+		"wait": 800,
+		"zoom": 1.2
+	},
+	{
+		"feature": "icon-frontmatter-mirror",
+		"caption": "Iconize changes its data file, and 2 to 4 seconds later the note has the new icon.",
+		"frames": [
+			{
+				"note": "Trip to Lisbon.md",
+				"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); const dir=app.vault.configDir+'/plugins/obsidian-icon-folder'; if(!(await app.vault.adapter.exists(dir))) await app.vault.adapter.mkdir(dir); await app.vault.adapter.write(dir+'/data.json', \"{\\\"settings\\\": {\\\"iconInFrontmatterFieldName\\\": \\\"icon\\\", \\\"iconColorInFrontmatterFieldName\\\": \\\"iconColor\\\"}, \\\"Icon Frontmatter Mirror/Reading list.md\\\": {\\\"iconName\\\": \\\"LiBookOpen\\\", \\\"iconColor\\\": \\\"#2f7d5b\\\"}, \\\"Icon Frontmatter Mirror/Garden.md\\\": \\\"LiSprout\\\", \\\"Icon Frontmatter Mirror/Projects\\\": \\\"LiFolderKanban\\\", \\\"Icon Frontmatter Mirror/Projects/Website.md\\\": \\\"LiGlobe\\\"}\"); await app.plugins.plugins['icon-frontmatter-mirror'].mirrorNow(); document.querySelectorAll('.notice').forEach(n => n.remove()); const l=app.workspace.getLeaf(false); const s=l.getViewState(); await l.setViewState({...s,state:{...s.state,mode:'source',source:false}}); await new Promise(r=>setTimeout(r,800)); return 'before'; })()",
+				"wait": 500,
+				"hold": 2200,
+				"zoom": 1.2
+			},
+			{
+				"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); const dir=app.vault.configDir+'/plugins/obsidian-icon-folder'; if(!(await app.vault.adapter.exists(dir))) await app.vault.adapter.mkdir(dir); await app.vault.adapter.write(dir+'/data.json', \"{\\\"settings\\\": {\\\"iconInFrontmatterFieldName\\\": \\\"icon\\\", \\\"iconColorInFrontmatterFieldName\\\": \\\"iconColor\\\"}, \\\"Icon Frontmatter Mirror/Reading list.md\\\": {\\\"iconName\\\": \\\"LiBookOpen\\\", \\\"iconColor\\\": \\\"#2f7d5b\\\"}, \\\"Icon Frontmatter Mirror/Trip to Lisbon.md\\\": \\\"LiPlane\\\", \\\"Icon Frontmatter Mirror/Garden.md\\\": \\\"LiSprout\\\", \\\"Icon Frontmatter Mirror/Projects\\\": \\\"LiFolderKanban\\\", \\\"Icon Frontmatter Mirror/Projects/Website.md\\\": \\\"LiGlobe\\\"}\"); for (let i=0;i<60;i++) { const f=app.vault.getFileByPath(\"Icon Frontmatter Mirror/Trip to Lisbon.md\"); const fm=f && app.metadataCache.getFileCache(f)?.frontmatter; if (fm && fm[\"icon\"]===\"LiPlane\") break; await new Promise(r=>setTimeout(r,100)); } const f2=app.vault.getFileByPath(\"Icon Frontmatter Mirror/Trip to Lisbon.md\"); const v=app.metadataCache.getFileCache(f2)?.frontmatter?.[\"icon\"]; if (v!==\"LiPlane\") throw new Error('property '+v); await new Promise(r=>setTimeout(r,600)); return 'after'; })()",
+				"wait": 500,
+				"hold": 2600,
+				"zoom": 1.2
+			}
+		]
+	},
+	{
+		"feature": "conflicts",
+		"caption": "A note that already has its own icon value keeps it. The plugin lists it, and you decide.",
+		"note": "Garden.md",
+		"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); const dir=app.vault.configDir+'/plugins/obsidian-icon-folder'; if(!(await app.vault.adapter.exists(dir))) await app.vault.adapter.mkdir(dir); await app.vault.adapter.write(dir+'/data.json', \"{\\\"settings\\\": {\\\"iconInFrontmatterFieldName\\\": \\\"icon\\\", \\\"iconColorInFrontmatterFieldName\\\": \\\"iconColor\\\"}, \\\"Icon Frontmatter Mirror/Reading list.md\\\": {\\\"iconName\\\": \\\"LiBookOpen\\\", \\\"iconColor\\\": \\\"#2f7d5b\\\"}, \\\"Icon Frontmatter Mirror/Trip to Lisbon.md\\\": \\\"LiPlane\\\", \\\"Icon Frontmatter Mirror/Garden.md\\\": \\\"LiSprout\\\", \\\"Icon Frontmatter Mirror/Projects\\\": \\\"LiFolderKanban\\\", \\\"Icon Frontmatter Mirror/Projects/Website.md\\\": \\\"LiGlobe\\\"}\"); await app.plugins.plugins['icon-frontmatter-mirror'].mirrorNow(); document.querySelectorAll('.notice').forEach(n => n.remove()); app.plugins.plugins['icon-frontmatter-mirror'].showConflicts(); for (let i=0;i<30 && !document.querySelector('.ifm-conflict-list');i++) await new Promise(r=>setTimeout(r,100)); if (!document.querySelector('.ifm-conflict-list li')) throw new Error('no conflict row'); return 'ok'; })()",
+		"after": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); return 'ok'; })()",
+		"wait": 700,
+		"zoom": 1.2
+	},
+	{
+		"feature": "settings",
+		"caption": "The status line counts the mirrored notes and the skipped folder icons. Folders have no properties.",
+		"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); const dir=app.vault.configDir+'/plugins/obsidian-icon-folder'; if(!(await app.vault.adapter.exists(dir))) await app.vault.adapter.mkdir(dir); await app.vault.adapter.write(dir+'/data.json', \"{\\\"settings\\\": {\\\"iconInFrontmatterFieldName\\\": \\\"icon\\\", \\\"iconColorInFrontmatterFieldName\\\": \\\"iconColor\\\"}, \\\"Icon Frontmatter Mirror/Reading list.md\\\": {\\\"iconName\\\": \\\"LiBookOpen\\\", \\\"iconColor\\\": \\\"#2f7d5b\\\"}, \\\"Icon Frontmatter Mirror/Trip to Lisbon.md\\\": \\\"LiPlane\\\", \\\"Icon Frontmatter Mirror/Garden.md\\\": \\\"LiSprout\\\", \\\"Icon Frontmatter Mirror/Projects\\\": \\\"LiFolderKanban\\\", \\\"Icon Frontmatter Mirror/Projects/Website.md\\\": \\\"LiGlobe\\\"}\"); await app.plugins.plugins['icon-frontmatter-mirror'].mirrorNow(); document.querySelectorAll('.notice').forEach(n => n.remove()); app.setting.open(); app.setting.openTabById('icon-frontmatter-mirror'); await new Promise(r => setTimeout(r, 900)); return 'ok'; })()",
+		"after": "(async () => { app.setting.close(); return 'ok'; })()",
+		"wait": 700
+	},
+	{
+		"feature": "pro",
+		"caption": "Pro options: two extra properties with a format each, and folder icons in folder notes.",
+		"eval": "(async () => { document.querySelectorAll('.modal-container').forEach(el => el.remove()); app.setting.open(); app.setting.openTabById('icon-frontmatter-mirror'); await new Promise(r => setTimeout(r, 900)); const h=Array.from(document.querySelectorAll('.vertical-tab-content .setting-item-name, .vertical-tab-content .setting-group-heading, .vertical-tab-content .setting-item-heading')).find(e => /Extra property 1/.test(e.textContent||'')); if (!h) throw new Error('no Pro rows'); h.scrollIntoView({block:'start'}); await new Promise(r => setTimeout(r, 400)); return 'ok'; })()",
+		"after": "(async () => { app.setting.close(); return 'ok'; })()",
+		"wait": 700
+	}
+]

@@ -1,0 +1,633 @@
+{
+ "slug": "icon-frontmatter-mirror",
+ "module": "icon-frontmatter-mirror/src/mirror",
+ "function": "decide",
+ "note": "Each case names its function in fn: decide(current, target, ledger) gives keep, set, remove, conflict, forget or none; planWanted(icons, kinds, options) gives the wanted properties of each note and the counts; parseIconizeData(text) reads the Iconize data.json; formatIcon(icon, format); folderNotePath(folder, mode); removalAllowed(dataMtime, renamedAt); holdRemovals(notes, icons) is the mass removal guard; findCaseTwin(keys, prop) finds a key that differs only in case. Names that start with a number are acceptance cases 1 to 10 of the spec. Reviewed by hand against each input.",
+ "cases": [
+  {
+   "name": "1 decide-set: empty property gets the Iconize icon",
+   "fn": "decide",
+   "args": [
+    null,
+    "LiHouse",
+    null
+   ],
+   "expected": "set"
+  },
+  {
+   "name": "1 decide-set: empty string counts as empty",
+   "fn": "decide",
+   "args": [
+    "",
+    "LiHouse",
+    null
+   ],
+   "expected": "set"
+  },
+  {
+   "name": "1 plan: a note icon becomes the icon property",
+   "fn": "planWanted",
+   "args": [
+    {
+     "Notes/A.md": {
+      "icon": "LiHouse",
+      "color": null
+     }
+    },
+    {
+     "Notes/A.md": "md"
+    },
+    {
+     "iconProperty": "icon",
+     "colorProperty": "iconColor",
+     "extras": [],
+     "folderNotes": null
+    }
+   ],
+   "expected": {
+    "wanted": {
+     "Notes/A.md": {
+      "icon": "LiHouse"
+     }
+    },
+    "counts": {
+     "notes": 1,
+     "folders": 0,
+     "folderNotes": 0,
+     "other": 0,
+     "missing": 0
+    }
+   }
+  },
+  {
+   "name": "1 plan: an emoji icon is written as the emoji",
+   "fn": "planWanted",
+   "args": [
+    {
+     "B.md": {
+      "icon": "📚",
+      "color": null
+     }
+    },
+    {
+     "B.md": "md"
+    },
+    {
+     "iconProperty": "icon",
+     "colorProperty": "iconColor",
+     "extras": [],
+     "folderNotes": null
+    }
+   ],
+   "expected": {
+    "wanted": {
+     "B.md": {
+      "icon": "📚"
+     }
+    },
+    "counts": {
+     "notes": 1,
+     "folders": 0,
+     "folderNotes": 0,
+     "other": 0,
+     "missing": 0
+    }
+   }
+  },
+  {
+   "name": "1 plan: the icon color goes to the color property",
+   "fn": "planWanted",
+   "args": [
+    {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": "#ff0000"
+     }
+    },
+    {
+     "A.md": "md"
+    },
+    {
+     "iconProperty": "icon",
+     "colorProperty": "iconColor",
+     "extras": [],
+     "folderNotes": null
+    }
+   ],
+   "expected": {
+    "wanted": {
+     "A.md": {
+      "icon": "LiHouse",
+      "iconColor": "#ff0000"
+     }
+    },
+    "counts": {
+     "notes": 1,
+     "folders": 0,
+     "folderNotes": 0,
+     "other": 0,
+     "missing": 0
+    }
+   }
+  },
+  {
+   "name": "2 decide-update: a value the plugin wrote follows a change in Iconize",
+   "fn": "decide",
+   "args": [
+    "LiHouse",
+    "LiStar",
+    "LiHouse"
+   ],
+   "expected": "set"
+  },
+  {
+   "name": "2 decide-keep: an equal value is not written again",
+   "fn": "decide",
+   "args": [
+    "LiStar",
+    "LiStar",
+    "LiHouse"
+   ],
+   "expected": "keep"
+  },
+  {
+   "name": "2 decide-keep: an equal value typed by the user is adopted",
+   "fn": "decide",
+   "args": [
+    "LiStar",
+    "LiStar",
+    null
+   ],
+   "expected": "keep"
+  },
+  {
+   "name": "3 decide-remove: icon removed in Iconize removes the value the plugin wrote",
+   "fn": "decide",
+   "args": [
+    "LiHouse",
+    null,
+    "LiHouse"
+   ],
+   "expected": "remove"
+  },
+  {
+   "name": "3 decide-forget: icon removed but the user changed the value keeps it",
+   "fn": "decide",
+   "args": [
+    "MyIcon",
+    null,
+    "LiHouse"
+   ],
+   "expected": "forget"
+  },
+  {
+   "name": "3 decide-forget: icon removed and the property already empty",
+   "fn": "decide",
+   "args": [
+    null,
+    null,
+    "LiHouse"
+   ],
+   "expected": "forget"
+  },
+  {
+   "name": "3 decide-none: no icon and no ledger does nothing",
+   "fn": "decide",
+   "args": [
+    "LiHouse",
+    null,
+    null
+   ],
+   "expected": "none"
+  },
+  {
+   "name": "4 decide-conflict: a different user value is never replaced",
+   "fn": "decide",
+   "args": [
+    "MyIcon",
+    "LiStar",
+    null
+   ],
+   "expected": "conflict"
+  },
+  {
+   "name": "4 decide-conflict: a user value changed after the plugin wrote",
+   "fn": "decide",
+   "args": [
+    "MyIcon",
+    "LiStar",
+    "LiHouse"
+   ],
+   "expected": "conflict"
+  },
+  {
+   "name": "4 decide-conflict: a list value is not replaced",
+   "fn": "decide",
+   "args": [
+    [
+     "a"
+    ],
+    "LiStar",
+    null
+   ],
+   "expected": "conflict"
+  },
+  {
+   "name": "4 decide-set: an empty list counts as empty",
+   "fn": "decide",
+   "args": [
+    [],
+    "LiStar",
+    null
+   ],
+   "expected": "set"
+  },
+  {
+   "name": "5 plan-folder: folders and other files are skipped and counted",
+   "fn": "planWanted",
+   "args": [
+    {
+     "Projects": {
+      "icon": "LiFolder",
+      "color": null
+     },
+     "img.png": {
+      "icon": "LiImage",
+      "color": null
+     },
+     "Gone.md": {
+      "icon": "LiX",
+      "color": null
+     },
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     }
+    },
+    {
+     "Projects": "folder",
+     "img.png": "other",
+     "A.md": "md"
+    },
+    {
+     "iconProperty": "icon",
+     "colorProperty": "iconColor",
+     "extras": [],
+     "folderNotes": null
+    }
+   ],
+   "expected": {
+    "wanted": {
+     "A.md": {
+      "icon": "LiHouse"
+     }
+    },
+    "counts": {
+     "notes": 1,
+     "folders": 1,
+     "folderNotes": 0,
+     "other": 1,
+     "missing": 1
+    }
+   }
+  },
+  {
+   "name": "6 stale-removal: a data file older than the rename cannot remove",
+   "fn": "removalAllowed",
+   "args": [
+    1000,
+    2000
+   ],
+   "expected": false
+  },
+  {
+   "name": "6 stale-removal: a data file newer than the rename can remove",
+   "fn": "removalAllowed",
+   "args": [
+    3000,
+    2000
+   ],
+   "expected": true
+  },
+  {
+   "name": "6 stale-removal: a note that was not renamed can remove",
+   "fn": "removalAllowed",
+   "args": [
+    1000,
+    null
+   ],
+   "expected": true
+  },
+  {
+   "name": "7 parse-broken: a half written file is not valid",
+   "fn": "parseIconizeData",
+   "args": [
+    "{\"settings\":{\"iconInFrontmatterFieldName\":\"icon\"},\"A.md\":\"LiHo"
+   ],
+   "expected": {
+    "ok": false,
+    "error": "not valid JSON"
+   }
+  },
+  {
+   "name": "7 parse-broken: an array is not valid",
+   "fn": "parseIconizeData",
+   "args": [
+    "[1,2]"
+   ],
+   "expected": {
+    "ok": false,
+    "error": "not a JSON object"
+   }
+  },
+  {
+   "name": "7 parse: string and object values, settings and bad values skipped",
+   "fn": "parseIconizeData",
+   "args": [
+    "{\"settings\": {\"iconInFrontmatterFieldName\": \"icon\", \"iconColorInFrontmatterFieldName\": \"iconColor\"}, \"A.md\": \"LiHouse\", \"B.md\": {\"iconName\": \"IbStar\", \"iconColor\": \"#00ff00\"}, \"C.md\": {\"iconName\": null, \"iconColor\": \"#000\"}, \"D.md\": 5, \"E.md\": \"\"}"
+   ],
+   "expected": {
+    "ok": true,
+    "icons": {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     },
+     "B.md": {
+      "icon": "IbStar",
+      "color": "#00ff00"
+     }
+    },
+    "iconField": "icon",
+    "colorField": "iconColor",
+    "frontmatterEnabled": false
+   }
+  },
+  {
+   "name": "9 field-names: custom Iconize field names are read",
+   "fn": "parseIconizeData",
+   "args": [
+    "{\"settings\": {\"iconInFrontmatterFieldName\": \"glyph\", \"iconColorInFrontmatterFieldName\": \"glyphColor\"}, \"A.md\": \"LiHouse\"}"
+   ],
+   "expected": {
+    "ok": true,
+    "icons": {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     }
+    },
+    "iconField": "glyph",
+    "colorField": "glyphColor",
+    "frontmatterEnabled": false
+   }
+  },
+  {
+   "name": "9 field-names: missing settings give null names",
+   "fn": "parseIconizeData",
+   "args": [
+    "{\"A.md\": \"LiHouse\"}"
+   ],
+   "expected": {
+    "ok": true,
+    "icons": {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     }
+    },
+    "iconField": null,
+    "colorField": null,
+    "frontmatterEnabled": false
+   }
+  },
+  {
+   "name": "10 format-stored keeps the name",
+   "fn": "formatIcon",
+   "args": [
+    "LiArrowBigDown",
+    "stored"
+   ],
+   "expected": "LiArrowBigDown"
+  },
+  {
+   "name": "10 format-name drops the pack prefix",
+   "fn": "formatIcon",
+   "args": [
+    "LiArrowBigDown",
+    "name"
+   ],
+   "expected": "ArrowBigDown"
+  },
+  {
+   "name": "10 format-kebab gives lowercase with dashes",
+   "fn": "formatIcon",
+   "args": [
+    "LiArrowBigDown",
+    "kebab"
+   ],
+   "expected": "arrow-big-down"
+  },
+  {
+   "name": "10 format-kebab keeps digits together",
+   "fn": "formatIcon",
+   "args": [
+    "LiClock12",
+    "kebab"
+   ],
+   "expected": "clock-12"
+  },
+  {
+   "name": "10 format-kebab of a two letter pack prefix",
+   "fn": "formatIcon",
+   "args": [
+    "IbHome",
+    "kebab"
+   ],
+   "expected": "home"
+  },
+  {
+   "name": "10 format-emoji stays an emoji",
+   "fn": "formatIcon",
+   "args": [
+    "📚",
+    "kebab"
+   ],
+   "expected": "📚"
+  },
+  {
+   "name": "10 format-name of text that is not a pack name stays",
+   "fn": "formatIcon",
+   "args": [
+    "house",
+    "name"
+   ],
+   "expected": "house"
+  },
+  {
+   "name": "10 plan-pro: extra properties and folder notes",
+   "fn": "planWanted",
+   "args": [
+    {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     },
+     "Projects": {
+      "icon": "LiFolder",
+      "color": null
+     },
+     "Empty": {
+      "icon": "LiBox",
+      "color": null
+     }
+    },
+    {
+     "A.md": "md",
+     "Projects": "folder",
+     "Projects/Projects.md": "md",
+     "Empty": "folder"
+    },
+    {
+     "iconProperty": "icon",
+     "colorProperty": null,
+     "extras": [
+      {
+       "property": "lucide",
+       "format": "kebab"
+      }
+     ],
+     "folderNotes": {
+      "mode": "same-name",
+      "property": "folderIcon"
+     }
+    }
+   ],
+   "expected": {
+    "wanted": {
+     "A.md": {
+      "icon": "LiHouse",
+      "lucide": "house"
+     },
+     "Projects/Projects.md": {
+      "folderIcon": "LiFolder"
+     }
+    },
+    "counts": {
+     "notes": 1,
+     "folders": 2,
+     "folderNotes": 1,
+     "other": 0,
+     "missing": 0
+    }
+   }
+  },
+  {
+   "name": "10 folder note path same-name",
+   "fn": "folderNotePath",
+   "args": [
+    "Work/Projects",
+    "same-name"
+   ],
+   "expected": "Work/Projects/Projects.md"
+  },
+  {
+   "name": "10 folder note path index",
+   "fn": "folderNotePath",
+   "args": [
+    "Work/Projects",
+    "index"
+   ],
+   "expected": "Work/Projects/index.md"
+  },
+  {
+   "name": "7 parse: the Iconize option Use icon in frontmatter is read",
+   "fn": "parseIconizeData",
+   "args": [
+    "{\"settings\": {\"iconInFrontmatterEnabled\": true}, \"A.md\": \"LiHouse\"}"
+   ],
+   "expected": {
+    "ok": true,
+    "icons": {
+     "A.md": {
+      "icon": "LiHouse",
+      "color": null
+     }
+    },
+    "iconField": null,
+    "colorField": null,
+    "frontmatterEnabled": true
+   }
+  },
+  {
+   "name": "11 mass-removal: a data file with no icons holds even one removal",
+   "fn": "holdRemovals",
+   "args": [
+    1,
+    0
+   ],
+   "expected": true
+  },
+  {
+   "name": "11 mass-removal: 11 removals in one pass are held",
+   "fn": "holdRemovals",
+   "args": [
+    11,
+    500
+   ],
+   "expected": true
+  },
+  {
+   "name": "11 mass-removal: 10 removals in one pass go through",
+   "fn": "holdRemovals",
+   "args": [
+    10,
+    500
+   ],
+   "expected": false
+  },
+  {
+   "name": "11 mass-removal: no removals is never held",
+   "fn": "holdRemovals",
+   "args": [
+    0,
+    0
+   ],
+   "expected": false
+  },
+  {
+   "name": "12 case-twin: Icon is a twin of icon",
+   "fn": "findCaseTwin",
+   "args": [
+    [
+     "Icon",
+     "tags"
+    ],
+    "icon"
+   ],
+   "expected": "Icon"
+  },
+  {
+   "name": "12 case-twin: the exact key is not a twin",
+   "fn": "findCaseTwin",
+   "args": [
+    [
+     "icon"
+    ],
+    "icon"
+   ],
+   "expected": null
+  },
+  {
+   "name": "12 case-twin: no twin gives null",
+   "fn": "findCaseTwin",
+   "args": [
+    [
+     "tags"
+    ],
+    "icon"
+   ],
+   "expected": null
+  }
+ ]
+}
