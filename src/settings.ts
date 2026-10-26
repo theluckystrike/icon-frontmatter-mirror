@@ -190,7 +190,7 @@ export class IconFrontmatterMirrorSettingTab extends PluginSettingTab {
 			},
 			{
 				name: 'Apply held icon removals',
-				desc: 'When one check would remove icons from many notes, or the Iconize data has no icons, the plugin waits for you. Select this to remove them.',
+				desc: 'When one check would remove icons from more than 10 notes, the plugin waits for you. It also waits when the Iconize data has no icons after a read with more than 3 icons, or, at the first read after a start, when the record has more than 3 notes. Select this to remove them.',
 				action: () => this.plugin.confirmHeldRemovals(),
 				visible: () => (this.plugin.engine?.status.heldRemovals ?? 0) > 0,
 			},

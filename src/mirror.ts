@@ -165,7 +165,7 @@ export function isEmptyValue(v: unknown): boolean {
 
 /**
  * Decides one property of one note. current is the frontmatter value now, target the value from Iconize (null when
- * Iconize has no icon), ledger the value that this plugin last wrote or found equal (null when none).
+ * Iconize has no icon), ledger the value that this plugin last wrote (null when none).
  */
 export function decide(current: unknown, target: string | null, ledger: string | null): Decision {
 	const empty = isEmptyValue(current);
@@ -204,10 +204,16 @@ export function findCaseTwin(keys: string[], prop: string): string | null {
  */
 export const REMOVAL_LIMIT = 10;
 
+/** A data file with no icons holds removals only when the last good read had more icons than this. */
+export const EMPTY_HOLD_ABOVE = 3;
+
 /**
- * True when the removals of one pass must wait for the user: more than REMOVAL_LIMIT notes, or any removal while the
- * data file has no icons at all (Iconize writes a file with settings only when it starts without its data).
+ * True when the removals of one pass must wait for the user: more than REMOVAL_LIMIT notes, or any removal while
+ * the data file has no icons and the last good read had more than EMPTY_HOLD_ABOVE icons. Iconize writes a file with
+ * settings only when it starts without its data (reinstall, reset). A user who removes the last of 1 to 3 icons
+ * sees the removal at once.
  */
-export function holdRemovals(notes: number, icons: number, limit: number = REMOVAL_LIMIT): boolean {
-	return notes > 0 && (icons === 0 || notes > limit);
+export function holdRemovals(notes: number, icons: number, knownIcons: number | null, limit: number = REMOVAL_LIMIT): boolean {
+	if (notes === 0) return false;
+	return notes > limit || (icons === 0 && (knownIcons ?? 0) > EMPTY_HOLD_ABOVE);
 }

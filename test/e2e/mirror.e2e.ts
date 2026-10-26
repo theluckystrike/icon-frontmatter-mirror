@@ -119,6 +119,18 @@ describe(`${pluginId} mirror`, function () {
 		await waitFor('Mirror/A.md', { icon: 'Typed' });
 	});
 
+	it('removing the only icon removes the value at once (no held removal)', async function () {
+		await note('Mirror/D.md', 'Delta body');
+		await setIconize({ settings: { iconInFrontmatterFieldName: 'icon' }, 'Mirror/D.md': 'LiLeaf' });
+		await mirrorNow();
+		await waitFor('Mirror/D.md', { icon: 'LiLeaf' });
+		await setIconize({ settings: { iconInFrontmatterFieldName: 'icon' } });
+		await mirrorNow();
+		await waitFor('Mirror/D.md', {});
+		await waitFor('Mirror/A.md', { icon: 'Typed' });
+		await waitFor('Mirror/B.md', { icon: 'Mine' });
+	});
+
 	it('a half written data file gives no error and no write', async function () {
 		await setIconize('{"Mirror/A.md":"LiCloud","Mirror/B.m');
 		await mirrorNow();

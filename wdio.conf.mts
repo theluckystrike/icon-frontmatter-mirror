@@ -34,11 +34,14 @@ export const config: WebdriverIO.Config = {
 	framework: 'mocha',
 	specs: ['./test/e2e/**/*.e2e.ts'],
 	maxInstances: Number(process.env.WDIO_MAX_INSTANCES ?? 1),
-	capabilities: versions.map(([appVersion, installerVersion]) => ({
+	// One more run of the latest version in Obsidian's mobile emulation (app.emulateMobile). It is not a real phone.
+	capabilities: [...versions.map(([appVersion, installerVersion]) => [appVersion, installerVersion, false] as const), ...versions.filter(([appVersion]) => appVersion === 'latest').map(([appVersion, installerVersion]) => [appVersion, installerVersion, true] as const)].map(([appVersion, installerVersion, emulateMobile]) => ({
 		browserName: 'obsidian',
 		browserVersion: appVersion,
+		...(emulateMobile ? { 'goog:chromeOptions': { mobileEmulation: { deviceMetrics: { width: 390, height: 844, pixelRatio: 1 } } } } : {}),
 		'wdio:obsidianOptions': {
 			installerVersion,
+			emulateMobile,
 			plugins: ['.'],
 			vault: 'test/e2e/vault',
 		},

@@ -1,6 +1,6 @@
 {
 	"name": "icon-frontmatter-mirror",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"private": true,
 	"description": "Copies the file icons that you set in Iconize to a property in each note, and keeps the property current.",
 	"main": "main.js",

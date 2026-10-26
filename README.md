@@ -14,7 +14,7 @@ Set an icon with the Iconize icon picker, as you always do. The plugin writes th
 
 ### Follows each change
 
-The plugin checks the Iconize data file every 2 seconds. When the file changes, the plugin waits until it stays the same for one more check, then reads it, so a change shows in 2 to 4 seconds. A changed icon updates the property. A removed icon removes the property, but only when the property still has the value that the plugin wrote. If one check would remove values from more than 10 notes, or the Iconize data has no icons at all (for example after a reinstall of Iconize), the plugin removes nothing and shows a notice. Run "Apply held icon removals" to remove them. The "Mirror icons now" command reads the file at once.
+The plugin checks the Iconize data file every 2 seconds. When the file changes, the plugin waits until it stays the same for one more check, then reads it, so a change shows in 2 to 4 seconds. A changed icon updates the property. A removed icon removes the property, but only when the property still has the value that the plugin wrote. If one check would remove values from more than 10 notes, or the Iconize data has no icons while the last read with icons had more than 3 icons, or, at the first read after a start, when more than 3 notes have values that the plugin wrote, the plugin removes nothing and shows a notice. Run "Apply held icon removals" to remove them. The "Mirror icons now" command reads the file at once.
 
 <img src="https://raw.githubusercontent.com/theluckystrike/icon-frontmatter-mirror/HEAD/docs/icon-frontmatter-mirror.gif" alt="A note without an icon property, then the same note with icon LiPlane after the Iconize data changes" width="720">
 

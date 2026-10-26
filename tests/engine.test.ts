@@ -158,7 +158,8 @@ describe('MirrorEngine', () => {
 
 	it('fix 2: a data file with settings only (Iconize reset or reinstall) holds the removals until the user applies them', async () => {
 		const settings = { iconInFrontmatterFieldName: 'icon', iconColorInFrontmatterFieldName: 'iconColor', migrated: 6 };
-		const r = await rig({ 'A.md': 'Body', 'B.md': 'Body' }, { settings, 'A.md': 'LiHouse', 'B.md': { iconName: 'IbStar', iconColor: '#ff0000' } });
+		// 4 icons in the last good read (2 of them for notes that do not exist): more than 3, so the empty file holds.
+		const r = await rig({ 'A.md': 'Body', 'B.md': 'Body' }, { settings, 'A.md': 'LiHouse', 'B.md': { iconName: 'IbStar', iconColor: '#ff0000' }, 'C.md': 'LiSun', 'D.md': 'LiMoon' });
 		await r.engine.run(true);
 		await r.setData({ settings });
 		await r.engine.run(true);
@@ -174,6 +175,72 @@ describe('MirrorEngine', () => {
 		expect(r.fm('A.md')).toEqual({});
 		expect(r.fm('B.md')).toEqual({});
 		expect(r.engine.status.heldRemovals).toBe(0);
+	});
+
+	it('1.0.1: removing the only icon removes the property at once', async () => {
+		const r = await rig({ 'A.md': 'Body' }, { settings: { migrated: 6 }, 'A.md': 'LiHouse' });
+		await r.engine.run(true);
+		await r.setData({ settings: { migrated: 6 } });
+		await r.engine.run(true);
+		expect(r.engine.status.heldRemovals).toBe(0);
+		expect(r.fm('A.md')).toEqual({});
+		expect(r.notes).toEqual([]);
+	});
+
+	it('1.0.1: after a restart, an empty data file holds the removals when the record has more than 3 notes', async () => {
+		const files: Record<string, string> = {};
+		const data: Record<string, string> = {};
+		for (let i = 0; i < 4; i++) {
+			files[`n/${i}.md`] = 'x';
+			data[`n/${i}.md`] = 'LiStar';
+		}
+		const r = await rig(files, data);
+		await r.engine.run(true);
+		const restarted = new MirrorEngine({ app: r.app, options: (i, c, x) => effectiveOptions(r.settings, false, i, c, x), ledger: () => r.ledger, save: async () => {}, changed: () => {}, notify: () => {} });
+		await r.setData({ settings: { migrated: 6 } });
+		await restarted.run(true);
+		expect(restarted.status.heldRemovals).toBe(4);
+		expect(r.fm('n/0.md')).toEqual({ icon: 'LiStar' });
+	});
+
+	it('1.0.1: a run that stops part way saved the record of the notes it wrote (restart keeps ownership)', async () => {
+		const files: Record<string, string> = {};
+		const data: Record<string, string> = {};
+		for (let i = 0; i < 1000; i++) {
+			files[`N${i}.md`] = 'x';
+			data[`N${i}.md`] = 'LiHouse';
+		}
+		const r = await rig(files, data);
+		let saved: Ledger = {};
+		const engine = new MirrorEngine({
+			app: r.app,
+			options: (i, c, x) => effectiveOptions(r.settings, false, i, c, x),
+			ledger: () => r.ledger,
+			save: async () => {
+				saved = JSON.parse(JSON.stringify(r.ledger)) as Ledger;
+			},
+			changed: () => {},
+			notify: () => {},
+		});
+		// Stop after 300 writes, as an unload or a quit does during a long first run.
+		const fileManager = r.app.fileManager;
+		const original = fileManager.processFrontMatter.bind(fileManager);
+		let calls = 0;
+		fileManager.processFrontMatter = async (file: TFile, fn: (fm: Record<string, unknown>) => void) => {
+			await original(file, fn);
+			if (++calls === 300) engine.stop();
+		};
+		await engine.run(true);
+		fileManager.processFrontMatter = original;
+		const written = Object.keys(data).filter((path) => r.fm(path).icon === 'LiHouse');
+		expect(written.length).toBe(300);
+		expect(Object.keys(saved).sort()).toEqual(written.sort());
+		// Restart with the saved record: a change in Iconize updates a note that the first run wrote.
+		const restarted = new MirrorEngine({ app: r.app, options: (i, c, x) => effectiveOptions(r.settings, false, i, c, x), ledger: () => saved, save: async () => {}, changed: () => {}, notify: () => {} });
+		await r.setData({ ...data, [written[0]!]: 'LiStar' });
+		await restarted.run(true);
+		expect(r.fm(written[0]!)).toEqual({ icon: 'LiStar' });
+		expect(restarted.status.conflicts).toEqual([]);
 	});
 
 	it('fix 2: more than 10 notes losing their icon in one check are held; 10 go through', async () => {

@@ -3,7 +3,7 @@
 import { TFile, TFolder, normalizePath, type App } from 'obsidian';
 import { ICONIZE_ID, decide, findCaseTwin, holdRemovals, isEmptyValue, parseIconizeData, planWanted, removalAllowed, type IconEntry, type PathKind, type PlanOptions, type Plan, type Decision } from './mirror';
 
-/** Note path to property name to the value that the plugin last wrote or found equal. */
+/** Note path to property name to the value that the plugin last wrote. */
 export type Ledger = Record<string, Record<string, string>>;
 
 export interface Conflict {
@@ -76,6 +76,11 @@ export class MirrorEngine {
 	/** The last good parse of the data file and the mtime of that read. */
 	private icons: Record<string, IconEntry> | null = null;
 	private fields: { icon: string | null; color: string | null; frontmatter: boolean } = { icon: null, color: null, frontmatter: false };
+	/**
+	 * The icon count of the last good read that had icons. At the first read of a session it is the number of notes
+	 * in the record of written values. The mass removal guard uses it for a data file with no icons.
+	 */
+	private knownIcons: number | null = null;
 	/** True for one run after the user confirms the held removals. */
 	private allowMass = false;
 	private dataMtime = 0;
@@ -187,6 +192,9 @@ export class MirrorEngine {
 			this.status.state = 'broken';
 			return;
 		}
+		this.knownIcons ??= Object.keys(this.host.ledger()).length;
+		const count = Object.keys(parsed.icons).length;
+		if (count > 0) this.knownIcons = count;
 		this.icons = parsed.icons;
 		this.fields = { icon: parsed.iconField, color: parsed.colorField, frontmatter: parsed.frontmatterEnabled };
 		this.dataMtime = stat.mtime;
@@ -238,63 +246,74 @@ export class MirrorEngine {
 		let n = 0;
 		/** Removals wait until the loop ends, so the mass removal guard sees their count first. */
 		const removals: { file: TFile; props: string[]; had: Record<string, string> }[] = [];
-		for (const path of notes) {
-			if (this.stopped) return;
-			if (++n % CHUNK === 0) await new Promise<void>((r) => window.setTimeout(r, 0));
-			const file = app.vault.getFileByPath(path);
-			if (!file || file.extension !== 'md') continue;
-			const cache = app.metadataCache.getFileCache(file);
-			if (!cache) {
-				waiting++;
-				continue;
+		// The record of written values is saved after each chunk and when the run ends or stops (unload, quit), so the
+		// notes written before a stop stay owned by the plugin after a restart.
+		try {
+			for (const path of notes) {
+				if (this.stopped) return;
+				if (++n % CHUNK === 0) {
+					if (ledgerChanged) {
+						ledgerChanged = false;
+						await this.host.save();
+					}
+					await new Promise<void>((r) => window.setTimeout(r, 0));
+				}
+				const file = app.vault.getFileByPath(path);
+				if (!file || file.extension !== 'md') continue;
+				const cache = app.metadataCache.getFileCache(file);
+				if (!cache) {
+					waiting++;
+					continue;
+				}
+				const fm = (cache.frontmatter ?? {}) as Record<string, unknown>;
+				const want = plan.wanted[path] ?? {};
+				const had = ledger[path] ?? {};
+				const props = new Set([...Object.keys(want), ...Object.keys(had).filter((p) => plan.managed.has(p))]);
+				const writes: string[] = [];
+				const removes: string[] = [];
+				for (const prop of props) {
+					const { d, current } = decideIn(fm, prop, want[prop] ?? null, had[prop] ?? null);
+					if (d === 'keep' || d === 'forget') {
+						// The ledger holds only values that the plugin wrote. An equal value that the user typed stays the user's.
+						if (prop in had && had[prop] !== want[prop]) ledgerChanged = this.setLedger(ledger, path, prop, null) || ledgerChanged;
+					} else if (d === 'conflict') {
+						conflicts.push({ path, property: prop, current: text(current), iconize: want[prop]! });
+					} else if (d === 'set') {
+						writes.push(prop);
+					} else if (d === 'remove' && removalAllowed(this.dataMtime, this.renamedAt.get(path))) {
+						removes.push(prop);
+					}
+				}
+				if (removes.length) removals.push({ file, props: removes, had: { ...had } });
+				if (writes.length === 0) continue;
+				const result = await this.write(file, writes, want, had);
+				written += result.written;
+				removed += result.removed;
+				conflicts.push(...result.conflicts);
+				ledgerChanged = true;
 			}
-			const fm = (cache.frontmatter ?? {}) as Record<string, unknown>;
-			const want = plan.wanted[path] ?? {};
-			const had = ledger[path] ?? {};
-			const props = new Set([...Object.keys(want), ...Object.keys(had).filter((p) => plan.managed.has(p))]);
-			const writes: string[] = [];
-			const removes: string[] = [];
-			for (const prop of props) {
-				const { d, current } = decideIn(fm, prop, want[prop] ?? null, had[prop] ?? null);
-				if (d === 'keep' || d === 'forget') {
-					// The ledger holds only values that the plugin wrote. An equal value that the user typed stays the user's.
-					if (prop in had && had[prop] !== want[prop]) ledgerChanged = this.setLedger(ledger, path, prop, null) || ledgerChanged;
-				} else if (d === 'conflict') {
-					conflicts.push({ path, property: prop, current: text(current), iconize: want[prop]! });
-				} else if (d === 'set') {
-					writes.push(prop);
-				} else if (d === 'remove' && removalAllowed(this.dataMtime, this.renamedAt.get(path))) {
-					removes.push(prop);
+			let held = 0;
+			const iconCount = Object.keys(this.icons).length;
+			if (!this.allowMass && holdRemovals(removals.length, iconCount, this.knownIcons)) {
+				held = removals.length;
+				if (held !== this.status.heldRemovals) {
+					this.host.notify(
+						`Icon Frontmatter Mirror held ${held} icon removals${iconCount === 0 ? ', because the Iconize data has no icons' : ''}. Check Iconize, then run "Apply held icon removals" if you want them.`,
+					);
+				}
+			} else {
+				for (const r of removals) {
+					if (this.stopped) return;
+					const result = await this.write(r.file, r.props, {}, r.had);
+					removed += result.removed;
+					ledgerChanged = true;
 				}
 			}
-			if (removes.length) removals.push({ file, props: removes, had: { ...had } });
-			if (writes.length === 0) continue;
-			const result = await this.write(file, writes, want, had);
-			written += result.written;
-			removed += result.removed;
-			conflicts.push(...result.conflicts);
-			ledgerChanged = ledgerChanged || result.written + result.removed > 0;
+			this.allowMass = false;
+			this.status = { ...this.status, counts: plan.counts, written, removed, conflicts, waiting, heldRemovals: held, lastRun: Date.now() };
+		} finally {
+			if (ledgerChanged) await this.host.save();
 		}
-		let held = 0;
-		const iconCount = Object.keys(this.icons).length;
-		if (!this.allowMass && holdRemovals(removals.length, iconCount)) {
-			held = removals.length;
-			if (held !== this.status.heldRemovals) {
-				this.host.notify(
-					`Icon Frontmatter Mirror held ${held} icon removals${iconCount === 0 ? ', because the Iconize data has no icons' : ''}. Check Iconize, then run "Apply held icon removals" if you want them.`,
-				);
-			}
-		} else {
-			for (const r of removals) {
-				if (this.stopped) return;
-				const result = await this.write(r.file, r.props, {}, r.had);
-				removed += result.removed;
-				ledgerChanged = ledgerChanged || result.removed > 0;
-			}
-		}
-		this.allowMass = false;
-		this.status = { ...this.status, counts: plan.counts, written, removed, conflicts, waiting, heldRemovals: held, lastRun: Date.now() };
-		if (ledgerChanged) await this.host.save();
 		this.host.changed();
 	}
 

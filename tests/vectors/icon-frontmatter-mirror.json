@@ -2,7 +2,7 @@
  "slug": "icon-frontmatter-mirror",
  "module": "icon-frontmatter-mirror/src/mirror",
  "function": "decide",
- "note": "Each case names its function in fn: decide(current, target, ledger) gives keep, set, remove, conflict, forget or none; planWanted(icons, kinds, options) gives the wanted properties of each note and the counts; parseIconizeData(text) reads the Iconize data.json; formatIcon(icon, format); folderNotePath(folder, mode); removalAllowed(dataMtime, renamedAt); holdRemovals(notes, icons) is the mass removal guard; findCaseTwin(keys, prop) finds a key that differs only in case. Names that start with a number are acceptance cases 1 to 10 of the spec. Reviewed by hand against each input.",
+ "note": "Each case names its function in fn: decide(current, target, ledger) gives keep, set, remove, conflict, forget or none; planWanted(icons, kinds, options) gives the wanted properties of each note and the counts; parseIconizeData(text) reads the Iconize data.json; formatIcon(icon, format); folderNotePath(folder, mode); removalAllowed(dataMtime, renamedAt); holdRemovals(notes, icons, knownIcons) is the mass removal guard; findCaseTwin(keys, prop) finds a key that differs only in case. Names that start with a number are acceptance cases 1 to 10 of the spec. Reviewed by hand against each input.",
  "cases": [
   {
    "name": "1 decide-set: empty property gets the Iconize icon",
@@ -560,19 +560,51 @@
    }
   },
   {
-   "name": "11 mass-removal: a data file with no icons holds even one removal",
+   "name": "11 mass-removal: a data file with no icons holds removals when the last read had 4 icons",
    "fn": "holdRemovals",
    "args": [
     1,
-    0
+    0,
+    4
    ],
    "expected": true
+  },
+  {
+   "name": "11 mass-removal: a data file with no icons removes the last icon when the last read had 1 icon",
+   "fn": "holdRemovals",
+   "args": [
+    1,
+    0,
+    1
+   ],
+   "expected": false
+  },
+  {
+   "name": "11 mass-removal: a data file with no icons removes when the last read had 3 icons",
+   "fn": "holdRemovals",
+   "args": [
+    3,
+    0,
+    3
+   ],
+   "expected": false
+  },
+  {
+   "name": "11 mass-removal: no known count (first read, empty record) does not hold",
+   "fn": "holdRemovals",
+   "args": [
+    1,
+    0,
+    null
+   ],
+   "expected": false
   },
   {
    "name": "11 mass-removal: 11 removals in one pass are held",
    "fn": "holdRemovals",
    "args": [
     11,
+    500,
     500
    ],
    "expected": true
@@ -582,6 +614,7 @@
    "fn": "holdRemovals",
    "args": [
     10,
+    500,
     500
    ],
    "expected": false
@@ -591,7 +624,8 @@
    "fn": "holdRemovals",
    "args": [
     0,
-    0
+    0,
+    9
    ],
    "expected": false
   },
