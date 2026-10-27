@@ -1,5 +1,11 @@
 # icon-frontmatter-mirror
 
+## 1.0.2
+
+### Patch Changes
+
+- cef7b05: The Pro options in the settings can now be selected without Pro. A change shows how to get Pro, with a Sponsor on GitHub button, and saves nothing. Without Pro the rows show no extra property and folder notes off.
+
 ## 1.0.1
 
 ### Patch Changes

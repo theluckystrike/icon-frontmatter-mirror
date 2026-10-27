@@ -8,7 +8,7 @@ Iconize keeps the icon of each note in its own data file, `data.json` in the Ico
 
 ### Icons become note properties
 
-Set an icon with the Iconize icon picker, as you always do. The plugin writes the same icon to the `icon` property of the note. If you also set a color in Iconize, the color goes to the `iconColor` property. The value is the exact text that Iconize stores, for example `LiBookOpen` or an emoji. If "Use icon in frontmatter" is on in Iconize, Iconize reads the property back, finds the same icon and changes nothing. In that case the plugin always writes the color too, because Iconize removes its color when the color property is empty.
+Set an icon with the Iconize icon picker. The plugin writes the same icon to the `icon` property of the note. If you also set a color in Iconize, the color goes to the `iconColor` property. The value is the text that Iconize stores, such as `LiBookOpen`. If "Use icon in frontmatter" is on in Iconize, Iconize reads the property back, finds the same icon and changes nothing. In that case the plugin always writes the color too, because Iconize removes its color when the color property is empty.
 
 <img src="https://raw.githubusercontent.com/theluckystrike/icon-frontmatter-mirror/HEAD/docs/mirrored.png" alt="A note in Live Preview with the icon LiBookOpen and the color in its properties" width="720">
 
@@ -38,7 +38,7 @@ The plugin writes a note only when a value must change, so a vault with thousand
 
 ### Extra properties and folder notes (Pro)
 
-Pro writes the icon to one or two more properties, each in a format that you select: as Iconize stores it (`LiHouse`), the name without the icon pack prefix (`House`), or lowercase with dashes (`house`, `arrow-big-down`). Emoji stay as they are. Pro can also write a folder icon to the folder note, `Folder/Folder.md` or `Folder/index.md`, in the property `folderIcon`. The note must exist. The plugin does not make notes.
+Pro writes the icon to one or two more properties, each in a format that you select: as Iconize stores it (`LiHouse`), the name without the icon pack prefix (`House`), or lowercase with dashes (`house`, `arrow-big-down`). Emoji stay as they are. Pro can also write a folder icon to the folder note, `Folder/Folder.md` or `Folder/index.md`, in the property `folderIcon`. The note must exist. The plugin does not make notes. Without Pro, these options show a Sponsor notice.
 
 <img src="https://raw.githubusercontent.com/theluckystrike/icon-frontmatter-mirror/HEAD/docs/pro.png" alt="The Pro options in the settings tab" width="720">
 

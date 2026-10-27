@@ -1,7 +1,7 @@
 import { PluginSettingTab, type SettingDefinitionItem } from 'obsidian';
 import { sponsorsSettingItems } from './license/github-obsidian';
 import { helloSettingItems } from './hello/settings';
-import { PRO_UI, isPro } from './pro';
+import { EXTRA_LEAD, FOLDER_LEAD, PRO_UI, isPro, proNotice } from './pro';
 import type { FolderNoteMode, IconFormat, PlanOptions } from './mirror';
 import type { MirrorStatus } from './engine';
 import type IconFrontmatterMirrorPlugin from './main';
@@ -236,37 +236,37 @@ export class IconFrontmatterMirrorSettingTab extends PluginSettingTab {
 					{
 						name: 'Extra property 1',
 						desc: 'Pro. Also write the icon to this property, in the format below. Leave empty to turn it off.',
-						control: { type: 'text', key: 'extra1Property', defaultValue: '', placeholder: 'lucideIcon', disabled: () => !isPro() },
+						control: { type: 'text', key: 'extra1Property', defaultValue: '', placeholder: 'lucideIcon' },
 					},
 					{
 						name: 'Extra property 1 format',
 						desc: 'Pro. Emoji stay as they are in each format.',
-						control: { type: 'dropdown', key: 'extra1Format', defaultValue: DEFAULT_SETTINGS.extra1Format, options: { ...FORMATS }, disabled: () => !isPro() },
+						control: { type: 'dropdown', key: 'extra1Format', defaultValue: DEFAULT_SETTINGS.extra1Format, options: { ...FORMATS } },
 					},
 					{
 						name: 'Extra property 2',
 						desc: 'Pro. A second extra property. Leave empty to turn it off.',
-						control: { type: 'text', key: 'extra2Property', defaultValue: '', disabled: () => !isPro() },
+						control: { type: 'text', key: 'extra2Property', defaultValue: '' },
 					},
 					{
 						name: 'Extra property 2 format',
 						desc: 'Pro.',
-						control: { type: 'dropdown', key: 'extra2Format', defaultValue: DEFAULT_SETTINGS.extra2Format, options: { ...FORMATS }, disabled: () => !isPro() },
+						control: { type: 'dropdown', key: 'extra2Format', defaultValue: DEFAULT_SETTINGS.extra2Format, options: { ...FORMATS } },
 					},
 					{
 						name: 'Folder icons to folder notes',
 						desc: 'Pro. Write the icon of a folder to its folder note, if the note exists. The plugin does not make notes.',
-						control: { type: 'toggle', key: 'folderNotes', defaultValue: DEFAULT_SETTINGS.folderNotes, disabled: () => !isPro() },
+						control: { type: 'toggle', key: 'folderNotes', defaultValue: DEFAULT_SETTINGS.folderNotes },
 					},
 					{
 						name: 'Folder note',
 						desc: 'Pro. The note that holds the folder icon.',
-						control: { type: 'dropdown', key: 'folderNoteMode', defaultValue: DEFAULT_SETTINGS.folderNoteMode, options: { ...FOLDER_MODES }, disabled: () => !isPro() },
+						control: { type: 'dropdown', key: 'folderNoteMode', defaultValue: DEFAULT_SETTINGS.folderNoteMode, options: { ...FOLDER_MODES } },
 					},
 					{
 						name: 'Folder icon property',
 						desc: 'Pro. The property in the folder note.',
-						control: { type: 'text', key: 'folderProperty', defaultValue: DEFAULT_SETTINGS.folderProperty, disabled: () => !isPro() },
+						control: { type: 'text', key: 'folderProperty', defaultValue: DEFAULT_SETTINGS.folderProperty },
 					},
 					{
 						name: 'Pro features',
@@ -285,11 +285,25 @@ export class IconFrontmatterMirrorSettingTab extends PluginSettingTab {
 	drafts: Partial<Record<NameKey, string>> = {};
 
 	getControlValue(key: string): unknown {
+		// A free user sees the values in effect: no extra property and no folder notes. The stored choices stay.
+		if (!isPro() && (key === 'extra1Property' || key === 'extra2Property')) return '';
+		if (!isPro() && key === 'folderNotes') return false;
 		if (isNameKey(key) && key in this.drafts) return this.drafts[key];
 		return super.getControlValue(key);
 	}
 
 	async setControlValue(key: string, value: unknown): Promise<void> {
+		const lead = key.startsWith('extra') ? EXTRA_LEAD : key.startsWith('folder') ? FOLDER_LEAD : null;
+		if (lead && !isPro()) {
+			// Free users can select the Pro options: the notice shows what Pro adds and how to get it. Nothing is saved.
+			proNotice(lead);
+			// Obsidian does not draw a control again while it has the focus. Move the focus out, then draw the tab
+			// again, so the row shows the value in effect.
+			const active = this.containerEl.ownerDocument.activeElement as HTMLElement | null;
+			if (active && this.containerEl.contains(active)) active.blur();
+			this.update();
+			return;
+		}
 		if (isNameKey(key)) {
 			this.drafts[key] = typeof value === 'string' ? value : '';
 			return;
