@@ -1,5 +1,11 @@
 # icon-frontmatter-mirror
 
+## 1.0.3
+
+### Patch Changes
+
+- ed85f3a: Without Pro, the 2 format rows, Folder note and Folder icon property show the defaults. Saved choices stay.
+
 ## 1.0.2
 
 ### Patch Changes

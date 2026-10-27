@@ -288,6 +288,8 @@ export class IconFrontmatterMirrorSettingTab extends PluginSettingTab {
 		// A free user sees the values in effect: no extra property and no folder notes. The stored choices stay.
 		if (!isPro() && (key === 'extra1Property' || key === 'extra2Property')) return '';
 		if (!isPro() && key === 'folderNotes') return false;
+		// The other Pro rows show the default values, not the stored Pro choices, which have no effect without Pro.
+		if (!isPro() && (key === 'extra1Format' || key === 'extra2Format' || key === 'folderNoteMode' || key === 'folderProperty')) return DEFAULT_SETTINGS[key];
 		if (isNameKey(key) && key in this.drafts) return this.drafts[key];
 		return super.getControlValue(key);
 	}

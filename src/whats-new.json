@@ -1,9 +1,10 @@
 {
 	"id": "icon-frontmatter-mirror",
 	"name": "Icon Frontmatter Mirror",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"changes": [
-		"The Pro options in the settings can now be selected without Pro. A change shows how to get Pro, with a Sponsor on GitHub button, and saves nothing. Without Pro the rows show no extra property and folder notes off."
+		"Without Pro, the 2 format rows, Folder note and Folder icon property show the defaults.",
+		"Saved choices stay."
 	],
 	"tip": "Set an icon with Iconize as you always do. After 2 to 4 seconds, the note has the same icon in its icon property. Run Mirror icons now from the command palette to update all notes at once.",
 	"thanks": "Hi, I am Michael, a solo developer in Poland. Icon Frontmatter Mirror is one of over 100 small plugins that I make. Thank you for trusting it with your notes.",

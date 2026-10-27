@@ -70,6 +70,25 @@ describe('Pro options of the settings tab', () => {
 		expect(shown).toHaveLength(4);
 	});
 
+	it('a free user sees the default format, folder note mode and folder property, not the stored Pro choices, and the stored choices stay', async () => {
+		const { plugin, tab } = await setup(false);
+		Object.assign(plugin.settings, { extra1Format: 'stored', extra2Format: 'kebab', folderNoteMode: 'index', folderProperty: 'banner' });
+		// Obsidian PluginSettingTab.getControlValue reads plugin.settings[key]. The mock does the same here.
+		vi.spyOn(Object.getPrototypeOf(IconFrontmatterMirrorSettingTab.prototype) as { getControlValue(k: string): unknown }, 'getControlValue').mockImplementation((k: string) => (plugin.settings as unknown as Record<string, unknown>)[k]);
+		expect(['extra1Format', 'extra2Format', 'folderNoteMode', 'folderProperty'].map((k) => tab.getControlValue(k))).toEqual(['kebab', 'name', 'same-name', 'folderIcon']);
+		expect(plugin.settings).toMatchObject({ extra1Format: 'stored', extra2Format: 'kebab', folderNoteMode: 'index', folderProperty: 'banner' });
+		// A free row shows the stored value.
+		plugin.settings.mirrorColor = false;
+		expect(tab.getControlValue('mirrorColor')).toBe(false);
+	});
+
+	it('a Pro user sees the stored format, folder note mode and folder property', async () => {
+		const { plugin, tab } = await setup(true);
+		Object.assign(plugin.settings, { extra1Format: 'stored', extra2Format: 'kebab', folderNoteMode: 'index', folderProperty: 'banner' });
+		vi.spyOn(Object.getPrototypeOf(IconFrontmatterMirrorSettingTab.prototype) as { getControlValue(k: string): unknown }, 'getControlValue').mockImplementation((k: string) => (plugin.settings as unknown as Record<string, unknown>)[k]);
+		expect(['extra1Format', 'extra2Format', 'folderNoteMode', 'folderProperty'].map((k) => tab.getControlValue(k))).toEqual(['stored', 'kebab', 'index', 'banner']);
+	});
+
 	it('a Pro user types an extra property and turns on folder notes, with no Pro notice', async () => {
 		const { tab, update, shown } = await setup(true);
 		await tab.setControlValue('extra1Property', 'glyph');
