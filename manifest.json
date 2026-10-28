@@ -1,7 +1,7 @@
 {
 	"id": "icon-frontmatter-mirror",
 	"name": "Icon Frontmatter Mirror",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "1.13.4",
 	"description": "Copies the file icons that you set in Iconize to a property in each note, and keeps the property current.",
 	"author": "Michael Lip",
