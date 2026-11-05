@@ -82,7 +82,7 @@ No. The plugin only reads the Iconize data file. It writes only to your notes, t
 
 ### What happens when I remove an icon in Iconize?
 
-The plugin removes the property if it still has the value that the plugin wrote. If you changed the value, the plugin keeps your value.
+It removes the property only if the value is still the one it wrote. Otherwise it keeps your value.
 
 ### What if my sync tool writes the Iconize file slowly?
 
@@ -91,6 +91,8 @@ The plugin reads the file only after it stays the same for one check. If the fil
 ## Payment, account and network
 
 The core features are free. Pro features need a GitHub Sponsors sponsorship of theluckystrike: $5 a month or more, or $15 once. A total payment of $15 meets the payment requirement for Pro without further payment. Sign-in and the checks below still apply. Your notes stay readable and editable with or without Pro.
+
+[One payment turns on Pro in every NoteMods plugin](https://notemods.com/pro/).
 
 GitHub handles the payment. Sponsor at https://github.com/sponsors/theluckystrike?frequency=one-time&metadata_source=icon-frontmatter-mirror. You need no account for the free features. Pro needs the GitHub account that sponsors.
 
@@ -102,7 +104,6 @@ After a successful check, Pro can work offline for up to 14 days. Sign out or a 
 
 ## Support
 
-Plugin page: [icon-frontmatter-mirror](https://notemods.com/plugins/icon-frontmatter-mirror/).
 
 Report bugs in the GitHub issues of this repository. Add your Obsidian and Iconize versions.
 
